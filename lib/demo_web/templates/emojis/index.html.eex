@@ -1,0 +1,4 @@
+<h1>Emoji Generator</h1>
+<%= form_for @changeset, DemoWeb.Router.Helpers.emojis_path(@conn, :create), fn _f -> %>
+  <%= submit("Randomize") %>
+<% end %>

@@ -1,0 +1,3 @@
+<%= form_for @changeset, DemoWeb.Router.Helpers.emojis_path(@conn, :create), fn _f -> %>
+  <%= submit("Random Emoji!") %>
+<% end %>
