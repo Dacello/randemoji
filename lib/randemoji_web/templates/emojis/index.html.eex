@@ -5,6 +5,7 @@
   </p>
 <% end %>
 <div class="Container">
+  <h1>Randemoji Demo</h1>
   <%= form_for @changeset, RandemojiWeb.Router.Helpers.emojis_path(@conn, :create), fn _f -> %>
     <%= submit("Send Randmoji") %>
   <% end %>

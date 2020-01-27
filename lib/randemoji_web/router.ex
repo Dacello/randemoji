@@ -16,7 +16,7 @@ defmodule RandemojiWeb.Router do
   scope "/", RandemojiWeb do
     pipe_through(:browser)
 
-    get("/", PageController, :index)
+    get("/", EmojisController, :index)
 
     resources("/emojis", EmojisController, only: [:index, :new, :create])
   end
