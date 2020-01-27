@@ -26,7 +26,6 @@ defmodule DBConnection.Watcher do
         caller_refs = Map.put(caller_refs, caller_ref, {supervisor, started_pid, started_ref})
         started_refs = Map.put(started_refs, started_ref, {caller_pid, caller_ref})
         {:reply, {:ok, started_pid}, {caller_refs, started_refs}}
-
       other ->
         {:reply, other, {caller_refs, started_refs}}
     end
@@ -35,13 +34,12 @@ defmodule DBConnection.Watcher do
   def handle_info({:DOWN, ref, _, _, _}, {caller_refs, started_refs}) do
     case caller_refs do
       %{^ref => {supervisor, started_pid, started_ref}} ->
-        Process.randemojinitor(started_ref, [:flush])
+        Process.demonitor(started_ref, [:flush])
         DynamicSupervisor.terminate_child(supervisor, started_pid)
         {:noreply, {Map.delete(caller_refs, ref), Map.delete(started_refs, started_ref)}}
-
       %{} ->
         %{^ref => {caller_pid, caller_ref}} = started_refs
-        Process.randemojinitor(caller_ref, [:flush])
+        Process.demonitor(caller_ref, [:flush])
         Process.exit(caller_pid, :kill)
         {:noreply, {Map.delete(caller_refs, caller_ref), Map.delete(started_refs, ref)}}
     end
@@ -55,7 +53,6 @@ defmodule DBConnection.Watcher do
     for {_, {caller_pid, _}} <- started_refs do
       Process.exit(caller_pid, :kill)
     end
-
     :ok
   end
 end

@@ -72,7 +72,7 @@ defmodule Phoenix.PubSub.Local do
     true = :ets.match_delete(local, {topic, {pid, :_}})
 
     case :ets.select_count(gc, [{{pid, :_}, [], [true]}]) do
-      0 -> :ok = GenServer.call(local, {:randemojinitor, pid})
+      0 -> :ok = GenServer.call(local, {:demonitor, pid})
       _ -> :ok
     end
   end
@@ -92,18 +92,14 @@ defmodule Phoenix.PubSub.Local do
       :ok
 
   """
-  def broadcast(fastlane, pubsub_server, 1 = _pool_size, from, topic, msg)
-      when is_atom(pubsub_server) do
+  def broadcast(fastlane, pubsub_server, 1 = _pool_size, from, topic, msg) when is_atom(pubsub_server) do
     do_broadcast(fastlane, pubsub_server, _shard = 0, from, topic, msg)
     :ok
   end
-
-  def broadcast(fastlane, pubsub_server, pool_size, from, topic, msg)
-      when is_atom(pubsub_server) do
+  def broadcast(fastlane, pubsub_server, pool_size, from, topic, msg) when is_atom(pubsub_server) do
     for shard <- 0..(pool_size - 1) do
       do_broadcast(fastlane, pubsub_server, shard, from, topic, msg)
     end
-
     :ok
   end
 
@@ -119,8 +115,7 @@ defmodule Phoenix.PubSub.Local do
   defp do_broadcast(fastlane, pubsub_server, shard, from, topic, msg) do
     pubsub_server
     |> subscribers_with_fastlanes(topic, shard)
-    # TODO: Test this contract
-    |> fastlane.fastlane(from, msg)
+    |> fastlane.fastlane(from, msg) # TODO: Test this contract
   end
 
   @doc """
@@ -162,8 +157,8 @@ defmodule Phoenix.PubSub.Local do
   def list(pubsub_server, shard) when is_atom(pubsub_server) do
     shard
     |> local_for_shard(pubsub_server)
-    |> :ets.select([{{:"$1", :_}, [], [:"$1"]}])
-    |> Enum.uniq()
+    |> :ets.select([{{:'$1', :_}, [], [:'$1']}])
+    |> Enum.uniq
   end
 
   @doc false
@@ -188,23 +183,10 @@ defmodule Phoenix.PubSub.Local do
   end
 
   def init({local, gc}) do
-    ^local =
-      :ets.new(local, [
-        :duplicate_bag,
-        :named_table,
-        :public,
-        read_concurrency: true,
-        write_concurrency: true
-      ])
-
-    ^gc =
-      :ets.new(gc, [
-        :duplicate_bag,
-        :named_table,
-        :public,
-        read_concurrency: true,
-        write_concurrency: true
-      ])
+    ^local = :ets.new(local, [:duplicate_bag, :named_table, :public,
+                              read_concurrency: true, write_concurrency: true])
+    ^gc = :ets.new(gc, [:duplicate_bag, :named_table, :public,
+                        read_concurrency: true, write_concurrency: true])
 
     Process.flag(:trap_exit, true)
     {:ok, %{monitors: %{}, gc: gc}}
@@ -215,7 +197,7 @@ defmodule Phoenix.PubSub.Local do
     {:reply, :ok, put_new_monitor(state, pid)}
   end
 
-  def handle_call({:randemojinitor, pid}, _from, state) do
+  def handle_call({:demonitor, pid}, _from, state) do
     {:reply, :ok, drop_monitor(state, pid)}
   end
 
@@ -253,11 +235,9 @@ defmodule Phoenix.PubSub.Local do
   defp drop_monitor(%{monitors: monitors} = state, pid) do
     case Map.fetch(monitors, pid) do
       {:ok, ref} ->
-        Process.randemojinitor(ref)
+        Process.demonitor(ref)
         %{state | monitors: Map.delete(monitors, pid)}
-
-      :error ->
-        state
+      :error -> state
     end
   end
 end

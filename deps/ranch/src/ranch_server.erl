@@ -222,7 +222,7 @@ set_monitored_process(Key, Pid, State=#state{monitors=Monitors0}) ->
 		false ->
 			Monitors0;
 		{value, {{OldMonitorRef, _}, _}, Monitors1} ->
-			true = erlang:randemojinitor(OldMonitorRef, [flush]),
+			true = erlang:demonitor(OldMonitorRef, [flush]),
 			Monitors1
 	end,
 	%% Then we unconditionally insert in the ets table.

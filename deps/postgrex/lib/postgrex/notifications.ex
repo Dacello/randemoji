@@ -245,7 +245,7 @@ defmodule Postgrex.Notifications do
   def handle_call({:unlisten, ref}, from, s) do
     case s.listeners do
       %{^ref => {channel, _pid}} ->
-        Process.randemojinitor(ref, [:flush])
+        Process.demonitor(ref, [:flush])
         do_unlisten(channel, ref, from, s)
 
       %{} ->

@@ -200,8 +200,8 @@ defmodule Phoenix.Socket do
   See `Phoenix.Token` documentation for examples in
   performing token verification on connect.
   """
-  @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
-  @callback connect(params :: map, Socket.t(), connect_info :: map) :: {:ok, Socket.t()} | :error
+  @callback connect(params :: map, Socket.t) :: {:ok, Socket.t} | :error
+  @callback connect(params :: map, Socket.t, connect_info :: map) :: {:ok, Socket.t} | :error
 
   @doc ~S"""
   Identifies the socket connection.
@@ -217,7 +217,7 @@ defmodule Phoenix.Socket do
 
   Returning `nil` makes this socket anonymous.
   """
-  @callback id(Socket.t()) :: String.t() | nil
+  @callback id(Socket.t) :: String.t | nil
 
   @optional_callbacks connect: 2, connect: 3
 
@@ -250,15 +250,15 @@ defmodule Phoenix.Socket do
           channel_pid: pid,
           endpoint: atom,
           handler: atom,
-          id: String.t() | nil,
+          id: String.t | nil,
           joined: boolean,
           ref: term,
           private: %{},
           pubsub_server: atom,
           serializer: atom,
-          topic: String.t(),
+          topic: String.t,
           transport: atom,
-          transport_pid: pid
+          transport_pid: pid,
         }
 
   defmacro __using__(opts) do
@@ -317,7 +317,7 @@ defmodule Phoenix.Socket do
   end
 
   def assign(%Socket{} = socket, attrs)
-      when is_map(attrs) or is_list(attrs) do
+  when is_map(attrs) or is_list(attrs) do
     %{socket | assigns: Map.merge(socket.assigns, Map.new(attrs))}
   end
 
@@ -359,14 +359,12 @@ defmodule Phoenix.Socket do
     end
   end
 
-  defp tear_alias({:__aliases__, meta, [h | t]}) do
+  defp tear_alias({:__aliases__, meta, [h|t]}) do
     alias = {:__aliases__, meta, [h]}
-
     quote do
-      Module.concat([unquote(alias) | unquote(t)])
+      Module.concat([unquote(alias)|unquote(t)])
     end
   end
-
   defp tear_alias(other), do: other
 
   # TODO: Remove the transport/3 implementation on v1.5
@@ -376,17 +374,13 @@ defmodule Phoenix.Socket do
   defmacro transport(name, module, config \\ []) do
     quote do
       @phoenix_transports Phoenix.Socket.__transport__(
-                            @phoenix_transports,
-                            unquote(name),
-                            unquote(module),
-                            unquote(config)
-                          )
+        @phoenix_transports, unquote(name), unquote(module), unquote(config))
     end
   end
 
   @doc false
   def __transport__(transports, name, module, user_conf) do
-    IO.warn("""
+    IO.warn """
     transport/3 in Phoenix.Socket is deprecated.
 
     Instead of defining transports in your socket.ex file:
@@ -408,7 +402,7 @@ defmodule Phoenix.Socket do
     your socket definition. If you have explicitly upgraded to
     Cowboy 2, any transport defined with the transport/3 macro
     will be ignored.
-    """)
+    """
 
     defaults = module.default_config()
 
@@ -419,12 +413,9 @@ defmodule Phoenix.Socket do
 
     Map.update(transports, name, {module, conf}, fn {dup_module, _} ->
       raise ArgumentError,
-            "duplicate transports (#{inspect(dup_module)} and #{inspect(module)}) defined for #{
-              inspect(name)
-            }"
+        "duplicate transports (#{inspect dup_module} and #{inspect module}) defined for #{inspect name}"
     end)
   end
-
   defp merge_defaults(conf, defaults), do: Keyword.merge(defaults, conf)
 
   defp normalize_serializer_conf(conf, name, transport_mod, default) do
@@ -450,14 +441,14 @@ defmodule Phoenix.Socket do
   end
 
   defp warn_serializer_deprecation(name, transport_mod, serializer) do
-    IO.warn("""
+    IO.warn """
     passing a serializer module to the transport macro is deprecated.
     Use a list with version requirements instead. For example:
 
-        transport :#{name}, #{inspect(transport_mod)},
-          serializer: [{#{inspect(serializer)}, "~> 1.0.0"}]
+        transport :#{name}, #{inspect transport_mod},
+          serializer: [{#{inspect serializer}, "~> 1.0.0"}]
 
-    """)
+    """
   end
 
   defp precompile_serializers(serializers) do
@@ -469,23 +460,15 @@ defmodule Phoenix.Socket do
     end
   end
 
-  defp rewrite_serializer(Phoenix.Transports.V2.WebSocketSerializer),
-    do: Phoenix.Socket.V2.JSONSerializer
-
-  defp rewrite_serializer(Phoenix.Transports.V2.LongPollSerializer),
-    do: Phoenix.Socket.V2.JSONSerializer
-
-  defp rewrite_serializer(Phoenix.Transports.WebSocketSerializer),
-    do: Phoenix.Socket.V1.JSONSerializer
-
-  defp rewrite_serializer(Phoenix.Transports.LongPollSerializer),
-    do: Phoenix.Socket.V1.JSONSerializer
-
+  defp rewrite_serializer(Phoenix.Transports.V2.WebSocketSerializer), do: Phoenix.Socket.V2.JSONSerializer
+  defp rewrite_serializer(Phoenix.Transports.V2.LongPollSerializer), do: Phoenix.Socket.V2.JSONSerializer
+  defp rewrite_serializer(Phoenix.Transports.WebSocketSerializer), do: Phoenix.Socket.V1.JSONSerializer
+  defp rewrite_serializer(Phoenix.Transports.LongPollSerializer), do: Phoenix.Socket.V1.JSONSerializer
   defp rewrite_serializer(module), do: module
 
   defmacro __before_compile__(env) do
     transports = Module.get_attribute(env.module, :phoenix_transports)
-    channels = Module.get_attribute(env.module, :phoenix_channels)
+    channels   = Module.get_attribute(env.module, :phoenix_channels)
 
     channel_defs =
       for {topic_pattern, module, opts} <- channels do
@@ -505,7 +488,7 @@ defmodule Phoenix.Socket do
     case String.split(topic_pattern, "*") do
       [prefix, ""] -> quote do: <<unquote(prefix) <> _rest>>
       [bare_topic] -> bare_topic
-      _ -> raise ArgumentError, "channels using splat patterns must end with *"
+      _            -> raise ArgumentError, "channels using splat patterns must end with *"
     end
   end
 
@@ -545,8 +528,7 @@ defmodule Phoenix.Socket do
     Phoenix.Endpoint.instrument(endpoint, :phoenix_socket_connect, runtime, fn ->
       case negotiate_serializer(Keyword.fetch!(options, :serializer), vsn) do
         {:ok, serializer} ->
-          result =
-            user_connect(user_socket, endpoint, transport, serializer, params, connect_info)
+          result = user_connect(user_socket, endpoint, transport, serializer, params, connect_info)
 
           metadata = %{
             endpoint: endpoint,
@@ -638,16 +620,13 @@ defmodule Phoenix.Socket do
             {:ok, serializer}
 
           :error ->
-            Logger.error(
-              "The client's requested transport version \"#{vsn}\" " <>
-                "does not match server's version requirements of #{inspect(serializers)}"
-            )
-
+            Logger.error "The client's requested transport version \"#{vsn}\" " <>
+                          "does not match server's version requirements of #{inspect serializers}"
             :error
         end
 
       :error ->
-        Logger.error("Client sent invalid transport version \"#{vsn}\"")
+        Logger.error "Client sent invalid transport version \"#{vsn}\""
         :error
     end
   end
@@ -685,11 +664,8 @@ defmodule Phoenix.Socket do
             {:ok, {state, %{socket | id: id}}}
 
           invalid ->
-            Logger.error(
-              "#{inspect(handler)}.id/1 returned invalid identifier " <>
-                "#{inspect(invalid)}. Expected nil or a string."
-            )
-
+            Logger.error "#{inspect handler}.id/1 returned invalid identifier " <>
+                           "#{inspect invalid}. Expected nil or a string."
             :error
         end
 
@@ -697,14 +673,9 @@ defmodule Phoenix.Socket do
         :error
 
       invalid ->
-        connect_arity =
-          if function_exported?(handler, :connect, 3), do: "connect/3", else: "connect/2"
-
-        Logger.error(
-          "#{inspect(handler)}. #{connect_arity} returned invalid value #{inspect(invalid)}. " <>
-            "Expected {:ok, socket} or :error"
-        )
-
+        connect_arity = if function_exported?(handler, :connect, 3), do: "connect/3", else: "connect/2"
+        Logger.error "#{inspect handler}. #{connect_arity} returned invalid value #{inspect invalid}. " <>
+                     "Expected {:ok, socket} or :error"
         :error
     end
   end
@@ -740,10 +711,10 @@ defmodule Phoenix.Socket do
   end
 
   defp handle_in({pid, ref}, %{event: "phx_join", topic: topic} = message, state, socket) do
-    Logger.debug(fn ->
+    Logger.debug fn ->
       "Duplicate channel join for topic \"#{topic}\" in #{inspect(socket.handler)}. " <>
         "Closing existing channel for new join."
-    end)
+    end
 
     :ok = shutdown_duplicate_channel(pid)
 
@@ -754,7 +725,7 @@ defmodule Phoenix.Socket do
     # case up to Phoenix v1.4.0.
     # TODO: Remove this message on Phoenix v1.5+
     {^topic, join_ref} = Map.fetch!(state.channels_inverse, pid)
-    send(self(), serialize_close(socket, topic, join_ref))
+    send self(), serialize_close(socket, topic, join_ref)
 
     state = delete_channel(state, pid, topic, ref)
     handle_in(nil, message, state, socket)
@@ -772,7 +743,6 @@ defmodule Phoenix.Socket do
       status: :ok,
       payload: %{}
     }
-
     {:reply, :ok, encode_reply(socket, reply), {state, socket}}
   end
 
@@ -785,19 +755,19 @@ defmodule Phoenix.Socket do
     monitor_ref = Process.monitor(pid)
 
     %{
-      state
-      | channels: Map.put(channels, topic, {pid, monitor_ref}),
+      state |
+        channels: Map.put(channels, topic, {pid, monitor_ref}),
         channels_inverse: Map.put(channels_inverse, pid, {topic, join_ref})
     }
   end
 
   defp delete_channel(state, pid, topic, monitor_ref) do
     %{channels: channels, channels_inverse: channels_inverse} = state
-    Process.randemojinitor(monitor_ref, [:flush])
+    Process.demonitor(monitor_ref, [:flush])
 
     %{
-      state
-      | channels: Map.delete(channels, topic),
+      state |
+        channels: Map.delete(channels, topic),
         channels_inverse: Map.delete(channels_inverse, pid)
     }
   end
@@ -808,7 +778,7 @@ defmodule Phoenix.Socket do
   end
 
   defp encode_ignore(%{handler: handler} = socket, %{ref: ref, topic: topic}) do
-    Logger.warn(fn -> "Ignoring unmatched topic \"#{topic}\" in #{inspect(handler)}" end)
+    Logger.warn fn -> "Ignoring unmatched topic \"#{topic}\" in #{inspect(handler)}" end
     reply = %Reply{ref: ref, topic: topic, status: :error, payload: %{reason: "unmatched topic"}}
     encode_reply(socket, reply)
   end
@@ -819,14 +789,7 @@ defmodule Phoenix.Socket do
   end
 
   defp serialize_close(%{serializer: serializer}, topic, join_ref) do
-    message = %Message{
-      join_ref: join_ref,
-      ref: join_ref,
-      topic: topic,
-      event: "phx_close",
-      payload: %{}
-    }
-
+    message = %Message{join_ref: join_ref, ref: join_ref, topic: topic, event: "phx_close", payload: %{}}
     serializer.encode!(message)
   end
 

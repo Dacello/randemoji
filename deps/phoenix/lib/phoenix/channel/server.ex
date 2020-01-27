@@ -41,11 +41,11 @@ defmodule Phoenix.Channel.Server do
 
         receive do
           {^ref, {:ok, reply}} ->
-            Process.randemojinitor(mon_ref, [:flush])
+            Process.demonitor(mon_ref, [:flush])
             {:ok, reply, pid}
 
           {^ref, {:error, reply}} ->
-            Process.randemojinitor(mon_ref, [:flush])
+            Process.demonitor(mon_ref, [:flush])
             {:error, reply}
 
           {:DOWN, ^mon_ref, _, _, reason} ->
@@ -254,10 +254,9 @@ defmodule Phoenix.Channel.Server do
     start = System.monotonic_time()
     instrument = %{params: auth_payload, socket: socket}
 
-    {reply, state} =
-      Phoenix.Endpoint.instrument(socket, :phoenix_channel_join, instrument, fn ->
-        channel_join(channel, topic, auth_payload, socket)
-      end)
+    {reply, state} = Phoenix.Endpoint.instrument(socket, :phoenix_channel_join, instrument, fn ->
+      channel_join(channel, topic, auth_payload, socket)
+    end)
 
     duration = System.monotonic_time() - start
     metadata = %{params: auth_payload, socket: socket, result: elem(reply, 0)}

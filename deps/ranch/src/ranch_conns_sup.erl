@@ -81,14 +81,14 @@ active_connections(SupPid) ->
 		[noconnect]),
 	receive
 		{Tag, Ret} ->
-			erlang:randemojinitor(Tag, [flush]),
+			erlang:demonitor(Tag, [flush]),
 			Ret;
 		{'DOWN', Tag, _, _, noconnection} ->
 			exit({nodedown, node(SupPid)});
 		{'DOWN', Tag, _, _, Reason} ->
 			exit(Reason)
 	after 5000 ->
-		erlang:randemojinitor(Tag, [flush]),
+		erlang:demonitor(Tag, [flush]),
 		exit(timeout)
 	end.
 
