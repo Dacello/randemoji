@@ -145,7 +145,7 @@ defmodule PhoenixClient.Socket do
         {:reply, :error, state}
 
       {_channel_pid, monitor_ref} ->
-        Process.demonitor(monitor_ref)
+        Process.randemojinitor(monitor_ref)
         message = Message.leave(topic)
         {push, state} = push_message(message, state)
         channels = Map.drop(channels, [topic])

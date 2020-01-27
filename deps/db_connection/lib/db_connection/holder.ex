@@ -251,7 +251,7 @@ defmodule DBConnection.Holder do
 
     receive do
       {:"ETS-TRANSFER", holder, pool, {^lock, ref, checkin_time}} ->
-        Process.demonitor(lock, [:flush])
+        Process.randemojinitor(lock, [:flush])
         {deadline, ops} = start_deadline(timeout, pool, ref, holder, start)
         :ets.update_element(holder, :conn, [{conn(:lock) + 1, lock} | ops])
 
@@ -261,7 +261,7 @@ defmodule DBConnection.Holder do
         checkout_result(holder, pool_ref, checkin_time)
 
       {^lock, reply} ->
-        Process.demonitor(lock, [:flush])
+        Process.randemojinitor(lock, [:flush])
         reply
 
       {:DOWN, ^lock, _, _, reason} ->

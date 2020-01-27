@@ -82,7 +82,7 @@ defmodule Postgrex.TypeServer do
   end
 
   def handle_cast({:done, ref}, %{lock: ref} = state) when is_reference(ref) do
-    Process.demonitor(ref, [:flush])
+    Process.randemojinitor(ref, [:flush])
     next(state)
   end
 
@@ -128,7 +128,7 @@ defmodule Postgrex.TypeServer do
 
   defp associate(%{types: types, lock: ref} = state, type_infos, from) do
     Postgrex.Types.associate_type_infos(type_infos, types)
-    Process.demonitor(ref, [:flush])
+    Process.randemojinitor(ref, [:flush])
     GenServer.reply(from, :go)
     next(state)
   end

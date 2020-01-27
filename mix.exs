@@ -1,9 +1,9 @@
-defmodule Demo.MixProject do
+defmodule Randemoji.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :demo,
+      app: :randemoji,
       version: "0.1.0",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule Demo.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Demo.Application, []},
+      mod: {Randemoji.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end

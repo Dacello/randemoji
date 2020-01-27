@@ -1,3 +1,16 @@
 /* This file is for your main application css. */
 
 @import "./phoenix.css";
+
+.Flash {
+  position: absolute;
+  top: 0;
+  width: '100%';
+  padding: 20px;
+  color: 'white';
+  background: 'green';
+}
+.Container {
+  padding: 200px;
+  text-align: center;
+}

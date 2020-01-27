@@ -1,4 +1,4 @@
-defmodule Demo.Repo.Migrations.CreateEmojis do
+defmodule Randemoji.Repo.Migrations.CreateEmojis do
   use Ecto.Migration
 
   def change do

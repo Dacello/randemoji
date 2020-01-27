@@ -7,15 +7,15 @@
 # General application configuration
 use Mix.Config
 
-config :demo,
-  ecto_repos: [Demo.Repo]
+config :randemoji,
+  ecto_repos: [Randemoji.Repo]
 
 # Configures the endpoint
-config :demo, DemoWeb.Endpoint,
+config :randemoji, RandemojiWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "xCBqmATdCToygN6vmce6eAKZhpj41tvTB44/GEMHF6Jzt8sQNzM1tVhKPMiiR8wB",
-  render_errors: [view: DemoWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]
+  render_errors: [view: RandemojiWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: Randemoji.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,

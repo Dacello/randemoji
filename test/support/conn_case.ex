@@ -1,4 +1,4 @@
-defmodule DemoWeb.ConnCase do
+defmodule RandemojiWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule DemoWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use DemoWeb.ConnCase, async: true`, although
+  by setting `use RandemojiWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -21,18 +21,18 @@ defmodule DemoWeb.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
-      alias DemoWeb.Router.Helpers, as: Routes
+      alias RandemojiWeb.Router.Helpers, as: Routes
 
       # The default endpoint for testing
-      @endpoint DemoWeb.Endpoint
+      @endpoint RandemojiWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Demo.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Randemoji.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Demo.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Randemoji.Repo, {:shared, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

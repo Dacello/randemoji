@@ -1,4 +1,4 @@
-# Demo
+# Randemoji
 
 To start your Phoenix server:
 

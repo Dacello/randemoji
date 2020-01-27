@@ -1,3 +1,3 @@
-defmodule DemoWeb.PageViewTest do
-  use DemoWeb.ConnCase, async: true
+defmodule RandemojiWeb.PageViewTest do
+  use RandemojiWeb.ConnCase, async: true
 end

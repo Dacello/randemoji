@@ -1,0 +1,11 @@
+<% flash = get_flash(@conn) %>
+<%= if flash["success"] do %>
+  <p class="alert alert-info" role="alert">
+    <%= flash["success"] %>
+  </p>
+<% end %>
+<div class="Container">
+  <%= form_for @changeset, RandemojiWeb.Router.Helpers.emojis_path(@conn, :create), fn _f -> %>
+    <%= submit("Send Randmoji") %>
+  <% end %>
+</div>

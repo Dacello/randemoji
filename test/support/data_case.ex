@@ -1,4 +1,4 @@
-defmodule Demo.DataCase do
+defmodule Randemoji.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -10,7 +10,7 @@ defmodule Demo.DataCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Demo.DataCase, async: true`, although
+  by setting `use Randemoji.DataCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -18,20 +18,20 @@ defmodule Demo.DataCase do
 
   using do
     quote do
-      alias Demo.Repo
+      alias Randemoji.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Demo.DataCase
+      import Randemoji.DataCase
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Demo.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Randemoji.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Demo.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Randemoji.Repo, {:shared, self()})
     end
 
     :ok

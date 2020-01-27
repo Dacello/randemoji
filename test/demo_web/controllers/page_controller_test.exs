@@ -1,5 +1,5 @@
-defmodule DemoWeb.PageControllerTest do
-  use DemoWeb.ConnCase
+defmodule RandemojiWeb.PageControllerTest do
+  use RandemojiWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get(conn, "/")
